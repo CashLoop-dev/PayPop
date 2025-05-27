@@ -1,0 +1,34 @@
+{
+  "name": "paypop",
+  "version": "1.0.0",
+  "description": "A project for managing PayPal transactions, orders, and invoices through a bot interface.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@grammyjs/conversations": "^2.1.0",
+    "axios": "^1.9.0",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "grammy": "^1.36.3",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nock": "^14.0.4",
+    "nodemon": "^2.0.7"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "testEnvironment": "node"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
