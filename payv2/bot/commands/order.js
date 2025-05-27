@@ -36,13 +36,16 @@ async function handleCreateOrder(conversation, ctx) {
     console.error('Error in /order conversation:', err?.response?.data || err);
     await ctx.reply('Failed to create order. Please try again.');
   }
+  await conversation.exit();
 }
 
-async function handleListOrders(ctx) {
+async function handleListOrders(conversation, ctx) {
   try {
     const orders = await ordersDb.listOrders();
     if (!orders || orders.length === 0) {
-      return await ctx.reply('No orders found.');
+      await ctx.reply('No orders found.');
+      await conversation.exit();
+      return;
     }
     const orderList = orders
       .map(order => `Order ID: ${order.id}, Item: ${order.name || order.item || 'N/A'}, Qty: ${order.qty || order.quantity || 'N/A'}, Price: ${order.price}, Status: ${order.status || 'N/A'}`)
@@ -52,6 +55,7 @@ async function handleListOrders(ctx) {
     console.error('Error retrieving orders:', error?.response?.data || error);
     await ctx.reply('An error occurred while retrieving orders. Please try again later.');
   }
+  await conversation.exit();
 }
 
 module.exports = async function orderConversation(conversation, ctx) {
@@ -60,25 +64,31 @@ module.exports = async function orderConversation(conversation, ctx) {
     .row()
     .text('List orders', 'list_orders');
 
-  const sent = await ctx.reply('What would you like to do?', { reply_markup: keyboard });
+  await ctx.reply('What would you like to do?', { reply_markup: keyboard });
 
-  const { callbackQuery } = await conversation.waitFor('callback_query');
-  const action = callbackQuery.data;
-
-  if (callbackQuery) {
-    await ctx.api.answerCallbackQuery(callbackQuery.id);
-    await ctx.api.editMessageReplyMarkup(
-      callbackQuery.message.chat.id,
-      callbackQuery.message.message_id
-    );
+  let callbackQueryData = null;
+  while (!callbackQueryData) {
+    const update = await conversation.wait();
+    if (update.callbackQuery && update.callbackQuery.data) {
+      callbackQueryData = update.callbackQuery.data;
+      await ctx.api.answerCallbackQuery(update.callbackQuery.id);
+      await ctx.api.editMessageReplyMarkup(
+        update.callbackQuery.message.chat.id,
+        update.callbackQuery.message.message_id,
+        undefined
+      );
+      break;
+    } else {
+      await ctx.reply('Please choose an option using the buttons above.');
+    }
   }
-  await conversation.skip();
 
-  if (action === 'create_order') {
+  if (callbackQueryData === 'create_order') {
     await handleCreateOrder(conversation, ctx);
-  } else if (action === 'list_orders') {
-    await handleListOrders(ctx);
+  } else if (callbackQueryData === 'list_orders') {
+    await handleListOrders(conversation, ctx);
   } else {
     await ctx.reply('Unknown action.');
+    await conversation.exit();
   }
 };
