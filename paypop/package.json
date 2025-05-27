@@ -1,0 +1,21 @@
+{
+  "name": "paypop",
+  "version": "1.0.0",
+  "description": "A project for managing PayPal transactions, orders, and invoices through a bot interface.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "axios": "^0.21.1",
+    "dotenv": "^10.0.0",
+    "mongoose": "^5.10.9"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
