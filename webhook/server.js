@@ -1,21 +1,25 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const cors = require('cors');
+const morgan = require('morgan');
+// const logger = require('../logger');
+
+const paypalWebhook = require('./paypal');
+const squareWebhook = require('./square');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-// Middleware to parse incoming JSON requests
-app.use(bodyParser.json());
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
 
-// Endpoint to handle PayPal webhook events
-app.post('/webhook', (req, res) => {
-    // TODO: Implement webhook event handling logic
-    res.status(200).send('Webhook event received');
-});
+// Mount both webhook handlers
+app.use('/webhook/paypal', paypalWebhook);
+app.use('/webhook/square', squareWebhook);
 
-// Start the server
+// Health check
+app.get('/', (req, res) => res.send('✅ Webhook server is running'));
+
 app.listen(PORT, () => {
-    console.log(`Webhook server is running on port ${PORT}`);
+  console.log(`✅ Webhook server listening at http://localhost:${PORT}`);
 });
-
-module.exports = app;

@@ -1,36 +1,43 @@
 module.exports = async function help(ctx) {
   await ctx.reply(
-`🤖 *PayPop Bot Help*
+`🤖 <b>PayPop Bot Help</b>
 
 Here are the available commands and their usage:
 
-*💸 Invoicing*
-/invoice — Create and send an invoice interactively
-/listinvoices — List all invoices
-/invoiceqr — Create an invoice and get a QR code for payment
-/fixinvoice — Cancel an old invoice and send a corrected one
+<b>💸 PayPal Invoicing</b>
+/invoice — Create and send a PayPal invoice interactively
+/listinvoices — List all PayPal invoices
+/invoiceqr — Create a PayPal invoice and get a QR code for payment
+/fixinvoice — Cancel an old PayPal invoice and send a corrected one
 /set_logo — Set a custom logo for your invoices
 /set_terms — Set default terms for your invoices
 
-*🛒 Orders & Products*
+<b>🛒 Orders & Products</b>
 /order — Create, pay for, and track an order interactively
 /products — Add, fetch, list, or delete product details
 /listorders — List all orders
 
-*🔄 Subscriptions*
-/subscribe — Create, list, or delete a subscription interactively
+<b>🔄 PayPal Subscriptions</b>
+/subscribe — Create, list, or delete a PayPal subscription interactively
 
-*💼 Reconciliation & Disputes*
+<b>💼 Reconciliation & Disputes</b>
 /reconcile — Reconcile an order with PayPal transactions
 /disputes — Resolve open PayPal disputes
 
-*📊 Admin & Analytics*
+<b>📊 Admin & Analytics</b>
 /admin — Admin dashboard: view stats, export sales, invoices, and subscriptions as CSV or PDF
 
-*❓ Other*
+<b>💳 Square Integration</b>
+/square_invoice — Create and send a Square invoice interactively
+/square_subscribe — Create a Square subscription interactively
+/square_cancel — Cancel a Square subscription interactively
+/square_history — View your Square invoices and subscriptions
+/square_export — Export your Square invoices and subscriptions as CSV/JSON
+
+<b>❓ Other</b>
 /help — Show this help message
 
-_Tip: Use the inline buttons for each command to access more options and features!_
-_Just type any command to get started. The bot will guide you through each step._`
-  , { parse_mode: "Markdown" });
+<i>Tip: Use the inline buttons for each command to access more options and features!
+Just type any command to get started. The bot will guide you through each step.</i>`
+  , { parse_mode: "HTML" });
 };
