@@ -1,11 +1,23 @@
 const { db } = require('./connection');
 
+// Ensure the orders table exists
+db.run(`
+  CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    qty INTEGER,
+    price REAL,
+    status TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 // Create a new order
 const createOrder = (orderData) => new Promise((resolve, reject) => {
-    const { id, name, qty, price, status } = orderData;
+    const { name, qty, price, status } = orderData;
     db.run(
-        'INSERT INTO orders (id, name, qty, price, status) VALUES (?, ?, ?, ?, ?)',
-        [id, name, qty, price, status],
+        'INSERT INTO orders (name, qty, price, status) VALUES (?, ?, ?, ?)',
+        [name, qty, price, status],
         function (err) {
             if (err) return reject(err);
             resolve({ id: this.lastID, ...orderData });

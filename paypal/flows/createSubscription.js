@@ -58,4 +58,41 @@ async function createSubscription(email, name) {
   return subRes.data.id;
 }
 
-module.exports = createSubscription;
+// List all subscriptions (stub: PayPal API does not provide a direct endpoint for all subscriptions)
+// You must track created subscriptions in your own DB for a real implementation.
+async function listSubscriptions() {
+  // Example: return an empty array or fetch from your DB
+  return [];
+}
+
+// Delete a subscription
+async function deleteSubscription(subscriptionId) {
+  const token = await getAccessToken();
+  // PayPal API: Cancel a subscription
+  await axios.post(`${BASE_URL}/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+    reason: 'Cancelled by admin'
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return true;
+}
+
+// Get subscription details
+async function getSubscription(subscriptionId) {
+  const token = await getAccessToken();
+  const res = await axios.get(`${BASE_URL}/v1/billing/subscriptions/${subscriptionId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status !== 200) {
+    throw new Error(`Failed to fetch subscription details: ${res.statusText}`);
+  }
+  return res.data;
+}
+
+module.exports = {
+  createSubscription,
+  listSubscriptions,
+  deleteSubscription,
+  getSubscription,
+};
+

@@ -14,6 +14,8 @@ const BASE_URL = process.env.PAYPAL_ENVIRONMENT === 'PRODUCTION'
  * @param {number} params.cost - Cost of the product/service
  * @param {number} params.taxPercent - Tax percentage (e.g., 10 for 10%)
  * @param {number} params.discountPercent - Discount percentage (e.g., 5 for 5%)
+ * @param {string} [params.logoUrl] - URL of the logo to be displayed on the invoice
+ * @param {string} [params.defaultTerms] - Default terms and conditions for the invoice
  * @returns {Promise<string>} Invoice ID
  */
 async function invoiceClient({
@@ -22,20 +24,20 @@ async function invoiceClient({
   itemName,
   cost,
   taxPercent,
-  discountPercent
+  discountPercent,
+  logoUrl,
+  defaultTerms
 }) {
   const token = await getAccessToken();
-
-  // Calculate tax and discount
-  const taxAmount = cost * (taxPercent / 100);
-  const discountAmount = cost * (discountPercent / 100);
-  const total = cost + taxAmount - discountAmount;
 
   // Build invoice payload
   const invoicePayload = {
     detail: {
+      invoice_number: `INV-${Date.now()}`,
       currency_code: 'USD',
-      note: `Invoice from ${fromEmail}`,
+      note: 'Thank you for your business!',
+      terms_and_conditions: defaultTerms || 'Payment due upon receipt.',
+      ...(logoUrl ? { logo_url: logoUrl } : {})
     },
     invoicer: {
       email_address: fromEmail
@@ -48,30 +50,11 @@ async function invoiceClient({
         name: itemName,
         quantity: '1',
         unit_amount: { currency_code: 'USD', value: cost.toFixed(2) },
-        tax: taxPercent > 0 ? {
-          name: 'Tax',
-          percent: taxPercent.toFixed(2)
-        } : undefined,
-        discount: discountPercent > 0 ? {
-          percent: discountPercent.toFixed(2)
-        } : undefined
+        tax: { name: 'Tax', percent: taxPercent.toString() },
+        discount: { percent: discountPercent.toString() }
       }
-    ],
-    amount: {
-      breakdown: {
-        item_total: { currency_code: 'USD', value: cost.toFixed(2) },
-        tax_total: { currency_code: 'USD', value: taxAmount.toFixed(2) },
-        discount: { currency_code: 'USD', value: discountAmount.toFixed(2) }
-      },
-      currency_code: 'USD',
-      value: total.toFixed(2)
-    }
+    ]
   };
-
-  // Remove undefined fields (tax/discount if 0)
-  invoicePayload.items[0] = Object.fromEntries(
-    Object.entries(invoicePayload.items[0]).filter(([_, v]) => v !== undefined)
-  );
 
   // Create invoice
   const invoiceRes = await axios.post(

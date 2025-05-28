@@ -1,6 +1,7 @@
 const resolveDisputes = require('../../paypal/flows/resolveDisputes');
 
 module.exports = async function disputes(ctx) {
+  await ctx.reply('Resolving disputes...');
   try {
     const id = await resolveDisputes();
     if (!id) return await ctx.reply('No open disputes found.');

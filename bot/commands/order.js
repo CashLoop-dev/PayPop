@@ -1,33 +1,42 @@
 const { InlineKeyboard } = require('grammy');
 const createOrderTrack = require('../../paypal/flows/createOrderTrack');
 const ordersDb = require('../../db/orders');
+const waitOrCancel = require('../../utils/convoCancel');
 
 async function handleCreateOrder(conversation, ctx) {
-  await ctx.reply(`Let's create a new order. Please provide:`);
+  await ctx.reply(`Let's create a new order. *Type /cancel at any time to stop.*\nPlease provide:`);
 
   let qty;
   while (true) {
-    await ctx.reply('Question 1:\nQuantity:');
-    const { message: { text } } = await conversation.wait();
-    qty = parseInt(text);
-    if (!isNaN(qty) && qty > 0) break;
-    await ctx.reply('Please enter a valid number greater than 0.');
+    try {
+      const message = await waitOrCancel(conversation, ctx, 'Question 1:\nQuantity:');
+      qty = parseInt(message.text);
+      if (!isNaN(qty) && qty > 0) break;
+      await ctx.reply('Please enter a valid number greater than 0.');
+    } catch (e) { return; }
   }
 
-  await ctx.reply('Question 2:\nItem name:');
-  const { message: { text: name } } = await conversation.wait();
+  let name;
+  try {
+    const message = await waitOrCancel(conversation, ctx, 'Question 2:\nItem name:');
+    name = message.text;
+  } catch (e) { return; }
 
   let price;
   while (true) {
-    await ctx.reply('Question 3:\nPrice per item:');
-    const { message: { text } } = await conversation.wait();
-    price = parseFloat(text);
-    if (!isNaN(price) && price > 0) break;
-    await ctx.reply('Please enter a valid number greater than 0.');
+    try {
+      const message = await waitOrCancel(conversation, ctx, 'Question 3:\nPrice per item:');
+      price = parseFloat(message.text);
+      if (!isNaN(price) && price > 0) break;
+      await ctx.reply('Please enter a valid number greater than 0.');
+    } catch (e) { return; }
   }
 
-  await ctx.reply('Question 4:\nTracking number:');
-  const { message: { text: tracking } } = await conversation.wait();
+  let tracking;
+  try {
+    const message = await waitOrCancel(conversation, ctx, 'Question 4:\nTracking number:');
+    tracking = message.text;
+  } catch (e) { return; }
 
   try {
     const orderId = await createOrderTrack(name, qty, price, tracking);
@@ -36,7 +45,7 @@ async function handleCreateOrder(conversation, ctx) {
     console.error('Error in /order conversation:', err?.response?.data || err);
     await ctx.reply('Failed to create order. Please try again.');
   }
-  await conversation.exit();
+  return;
 }
 
 async function handleListOrders(conversation, ctx) {
@@ -44,7 +53,6 @@ async function handleListOrders(conversation, ctx) {
     const orders = await ordersDb.listOrders();
     if (!orders || orders.length === 0) {
       await ctx.reply('No orders found.');
-      await conversation.exit();
       return;
     }
     const orderList = orders
@@ -55,7 +63,7 @@ async function handleListOrders(conversation, ctx) {
     console.error('Error retrieving orders:', error?.response?.data || error);
     await ctx.reply('An error occurred while retrieving orders. Please try again later.');
   }
-  await conversation.exit();
+  return;
 }
 
 module.exports = async function orderConversation(conversation, ctx) {
@@ -89,6 +97,6 @@ module.exports = async function orderConversation(conversation, ctx) {
     await handleListOrders(conversation, ctx);
   } else {
     await ctx.reply('Unknown action.');
-    await conversation.exit();
   }
+  return;
 };
